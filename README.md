@@ -249,8 +249,8 @@ Kairos is built **in public**, in phases. Each phase produces something real and
 
 | Phase | Focus | Key deliverables | Status |
 |:---:|---|---|:---:|
-| **0** | **Identity & Community** | Name, logo, this repo, Discord, landing page | 🟢 In progress |
-| **1** | **Optimized Base** | Win11 LTSC + debloat + custom installer + first ISO | ⚪ Planned |
+| **0** | **Identity & Community** | Name, logo, this repo, Discord, landing page | ✅ Completed |
+| **1** | **Optimized Base** | Win11 LTSC + debloat + custom installer + first ISO | 🟢 In progress |
 | **2** | **Shell MVP** | Dock, KaiSpot, theme, macOS shortcuts | ⚪ Planned |
 | **3** | **AI Agent v1** | KaiAssist, notes, screen reading, commands | ⚪ Planned |
 | **4** | **KaiRemote** | Telegram control, Wake-on-LAN, zero-config install | ⚪ Planned |
@@ -258,8 +258,8 @@ Kairos is built **in public**, in phases. Each phase produces something real and
 
 ### Milestones
 
-- **M0** — Public repo + identity that makes people want to join
-- **M1** — First downloadable ISO (real, installable)
+- **M0** — ✅ Public repo + identity that makes people want to join
+- **M1** — First downloadable ISO (real, installable) ← *we are here*
 - **M2** — First public demo of the shell on real hardware
 - **M3** — KaiAssist running with basic AI commands
 - **M4** — KaiRemote: Telegram control + remote wake working
