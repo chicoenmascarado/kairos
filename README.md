@@ -17,10 +17,11 @@ Kairos takes the best of macOS, Linux, and Windows — and makes it native, inte
 [![Status](https://img.shields.io/badge/status-pre--alpha-A78BFA.svg?style=for-the-badge)](#-roadmap)
 [![Discord](https://img.shields.io/badge/Discord-join_us-5865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/XSNFC3su5W)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-5B5BF5.svg?style=for-the-badge)](#-contributing)
+[![Website](https://img.shields.io/badge/website-live-5B5BF5.svg?style=for-the-badge)](https://kairoswebsite.vercel.app)
 
 <br />
 
-[**Vision**](#-the-vision) · [**Features**](#-what-kairos-does) · [**AI Agent**](#-the-kairos-ai-agent) · [**KaiRemote**](#-kairemote--your-pc-from-anywhere) · [**Roadmap**](#-roadmap) · [**Contribute**](#-contributing)
+[**Website**](https://kairoswebsite.vercel.app) · [**Vision**](#-the-vision) · [**Features**](#-what-kairos-does) · [**AI Agent**](#-the-kairos-ai-agent) · [**KaiRemote**](#-kairemote--your-pc-from-anywhere) · [**Roadmap**](#-roadmap) · [**Contribute**](#-contributing)
 
 </div>
 
@@ -330,6 +331,8 @@ Building on the **unmodified Windows NT kernel** is a deliberate choice: it pres
 ---
 
 ## 💜 Community
+
+- **[Website](https://kairoswebsite.vercel.app)** — see Kairos in motion
 
 - **[Discord](https://discord.gg/XSNFC3su5W)** — real-time discussion and dev coordination
 - **GitHub Discussions** — longer threads, ideas, proposals
