@@ -1,0 +1,47 @@
+# Build outputs
+/build/
+/dist/
+/out/
+*.o
+*.obj
+*.exe
+*.dll
+*.pdb
+
+# Rust
+/target/
+Cargo.lock
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Kairos local config & secrets
+*.local
+.env
+*.key
+config.local.json
+
+# ISO build artifacts (large files)
+*.iso
+*.wim
+*.esd
+/iso-workspace/
+
+# Logs
+*.log
+/logs/
