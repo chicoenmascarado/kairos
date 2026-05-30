@@ -15,7 +15,7 @@ Kairos takes the best of macOS, Linux, and Windows — and makes it native, inte
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-5B5BF5.svg?style=for-the-badge)](LICENSE)
 [![Status](https://img.shields.io/badge/status-pre--alpha-A78BFA.svg?style=for-the-badge)](#-roadmap)
-[![Discord](https://img.shields.io/badge/Discord-join_us-5865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](#-community)
+[![Discord](https://img.shields.io/badge/Discord-join_us-5865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/XSNFC3su5W)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-5B5BF5.svg?style=for-the-badge)](#-contributing)
 
 <br />
@@ -319,7 +319,7 @@ Building on the **unmodified Windows NT kernel** is a deliberate choice: it pres
 ### How to start
 
 1. ⭐ **Star this repo** — it genuinely helps the project grow
-2. 💬 **Join the [Discord](#-community)** and say hi
+2. 💬 **Join the [Discord](https://discord.gg/XSNFC3su5W)** and say hi
 3. 🔍 Browse issues labeled `good first issue`
 4. 📖 Read `CONTRIBUTING.md` before opening a pull request
 
@@ -331,7 +331,7 @@ Building on the **unmodified Windows NT kernel** is a deliberate choice: it pres
 
 ## 💜 Community
 
-- **Discord** — real-time discussion and dev coordination *(link coming soon)*
+- **[Discord](https://discord.gg/XSNFC3su5W)** — real-time discussion and dev coordination
 - **GitHub Discussions** — longer threads, ideas, proposals
 - **Issues** — bugs and feature requests
 
