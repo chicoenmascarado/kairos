@@ -114,7 +114,8 @@ if ($SinIdioma) {
 } else {
     try {
         Log 'Descargando el paquete de idioma español (unos minutos)...'
-        Install-Language -Language es-ES -CopyToSettings -ErrorAction Stop | Out-Null
+        # Solo idioma + interfaz: sin escritura a mano, voz ni OCR (tardan y no se usan).
+        Install-Language -Language es-ES -CopyToSettings -ExcludeFeatures -ErrorAction Stop | Out-Null
         Set-SystemPreferredUILanguage -Language es-ES
         Set-WinUILanguageOverride -Language es-ES
         $list = New-WinUserLanguageList -Language es-ES          # trae el teclado español
