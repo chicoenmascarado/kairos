@@ -52,13 +52,16 @@ if ($ExportDrivers) {
     $dest = "$Out\drivers"
     Remove-Item $dest -Recurse -Force -ErrorAction SilentlyContinue
     New-Item -ItemType Directory -Force $dest | Out-Null
-    $kept = 0
+    $kept = 0; $failed = 0
     foreach ($d in Get-WindowsDriver -Online) {
         if ("$($d.ProviderName) $($d.OriginalFileName)" -match $skip) { continue }
         $sub = Join-Path $dest ("{0}_{1}" -f ($d.ProviderName -replace '[^\w]', ''), [IO.Path]::GetFileNameWithoutExtension($d.OriginalFileName))
-        pnputil /export-driver $d.Driver $sub | Out-Null
-        $kept++
+        New-Item -ItemType Directory -Force $sub | Out-Null   # pnputil no crea la carpeta
+        $r = pnputil /export-driver $d.Driver $sub 2>&1
+        if ($LASTEXITCODE -eq 0 -and (Get-ChildItem $sub -Filter *.inf -Recurse)) { $kept++ }
+        else { $failed++; Write-Warning "No se exportó $($d.Driver) ($($d.ProviderName)): $($r | Select-Object -Last 1)" }
     }
+    if ($failed) { Write-Warning "$failed drivers no se pudieron exportar" }
     $size = (Get-ChildItem $dest -Recurse -File | Measure-Object Length -Sum).Sum / 1GB
     Write-Host ("Drivers exportados: {0} paquetes, {1:N1} GB" -f $kept, $size)
 }

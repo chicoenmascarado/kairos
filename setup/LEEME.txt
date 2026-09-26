@@ -1,8 +1,8 @@
-KAIROS v0.2 — instalación en el ASUS ROG Strix G15 (G513IC)
-===========================================================
+﻿KAIROS — instalación en el ASUS ROG Strix G15 (G513IC)
+======================================================
 
 El USB (Ventoy) lleva:
-  - Kairos-v0.2.iso     el sistema (Windows 11 Pro 25H2 adelgazado, sin Defender)
+  - Kairos-v0.x.iso     el sistema (Windows 11 Pro 25H2 adelgazado)
   - KairosSetup\        el post-install (se lanza solo)
   - $WinPEDriver$\      drivers del portátil (Windows los instala solo)
   - ventoy\             región, teclado y hora de España + arranque automático
@@ -10,7 +10,7 @@ El USB (Ventoy) lleva:
 1. INSTALAR
    - Portátil apagado y enchufado. USB puesto.
    - Enciende y pulsa ESC repetidamente -> elige el USB (UEFI).
-   - En Ventoy elige Kairos-v0.2.iso y, cuando pregunte, la plantilla
+   - En Ventoy elige la ISO de Kairos y, cuando pregunte, la plantilla
      "kairos-unattend.xml" (si eliges la otra opción, no se automatiza nada).
    - Borra todas las particiones del disco Intel de 512 GB y elige el espacio vacío.
      (Esto borra TODO lo que hay en el portátil.)
@@ -42,10 +42,10 @@ ATAJOS DE KAIROS
    Win+Alt+RePág/AvPág/M  Volumen + / - / silencio
    Clic en la hora del dock: centro de control y bandeja del sistema.
 
-IMPORTANTE: ESTE SISTEMA NO TIENE ANTIVIRUS
-   Kairos v0.2 viene sin Windows Defender, a petición del propietario, para ganar
-   rendimiento. Descarga programas y plugins solo de sus webs oficiales. Si algún
-   día quieres protección, instala un antivirus de terceros.
+ANTIVIRUS
+   El informe del escritorio dice si el sistema lleva Windows Defender. Si pone
+   "SIN ANTIVIRUS" (ISO v0.2), descarga programas y plugins solo de sus webs
+   oficiales o instala un antivirus de terceros.
 
 NOTAS
    - Windows Update sigue activo, pero no reinicia solo con la sesión abierta.
