@@ -10,6 +10,9 @@ El USB (Ventoy) lleva:
 1. INSTALAR
    - Portátil apagado y enchufado. USB puesto.
    - Enciende y pulsa ESC repetidamente -> elige el USB (UEFI).
+   - Solo la primera vez: si sale una pantalla azul "Verification failed / Security
+     Violation" (arranque seguro), pulsa Enter -> "Enroll key from disk" -> VTOYEFI ->
+     ENROLL_THIS_KEY_IN_MOKMANAGER.cer -> Continue -> Yes -> Reboot, y vuelve a elegir el USB.
    - En Ventoy elige la ISO de Kairos y, cuando pregunte, la plantilla
      "kairos-unattend.xml" (si eliges la otra opción, no se automatiza nada).
    - Borra todas las particiones del disco Intel de 512 GB y elige el espacio vacío.
@@ -24,7 +27,7 @@ El USB (Ventoy) lleva:
      ajustes de baja latencia · G-Helper para ASUS · la capa Kairos (dock, KaiSpot,
      menú, explorador, tema) · informe en el escritorio.
    - Al final pide una clave de Windows (opcional) y reiniciar. Ya puedes quitar el USB.
-   - Si no se abriera solo: C:\Kairos\Setup\INSTALAR-KAIROS.cmd
+   - Si no se abriera solo: abre el USB > KairosSetup > INSTALAR-KAIROS.cmd
 
 3. PARA PRODUCIR
    - Instala FL Studio (image-line.com) y los drivers ASIO de tu interfaz de audio.
