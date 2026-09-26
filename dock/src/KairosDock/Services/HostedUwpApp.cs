@@ -70,6 +70,89 @@ internal static class HostedUwpApp
         }
     }
 
+    /// <summary>
+    /// Store apps that run inside another program's process — Netflix and Prime Video
+    /// are packaged web apps rendered by msedge.exe — would otherwise be grouped
+    /// under that browser and show its icon. Their windows carry the package's
+    /// AppUserModelID, which is the only thing that tells them apart. Returns the
+    /// package manifest path when the window belongs to a Store package other than
+    /// the one <paramref name="exePath"/> lives in; otherwise <c>null</c>.
+    /// </summary>
+    public static string? StoreAppForWindow(IntPtr hwnd, string exePath)
+    {
+        try
+        {
+            string? aumid = GetAumid(hwnd);
+            if (string.IsNullOrEmpty(aumid))
+                return null;
+
+            // Web apps installed from Chrome/Edge ("Chrome._crx_<id>", "MSEdge._crx_<id>"):
+            // the browser writes a Start-menu shortcut with the same AUMID and the app's icon.
+            if (aumid.Contains("._crx_", StringComparison.OrdinalIgnoreCase))
+                return WebAppShortcuts.Find(aumid);
+
+            string? family = FamilyFromAumid(aumid);
+            if (family == null)
+                return null;
+            string? dir = PackageDirOfFamily(family);
+            if (!IsStoreDir(dir) || exePath.StartsWith(dir! + @"\", StringComparison.OrdinalIgnoreCase))
+                return null;   // not a Store app, or the exe is the app itself (WhatsApp)
+            return Path.Combine(dir!, ManifestName);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Maps a web-app AUMID to the Start-menu shortcut that carries it. Used as the
+    /// app's identity path: the shell draws the shortcut's icon, and its file name is
+    /// the app name. The scan is cached and redone at most every 30 s when an
+    /// unknown AUMID shows up (a web app installed while the dock is running).
+    /// </summary>
+    private static class WebAppShortcuts
+    {
+        private static Dictionary<string, string> _byAumid = new(StringComparer.OrdinalIgnoreCase);
+        private static DateTime _lastScan = DateTime.MinValue;
+        private static readonly object Gate = new();
+
+        public static string? Find(string aumid)
+        {
+            lock (Gate)
+            {
+                if (_byAumid.TryGetValue(aumid, out var hit))
+                    return hit;
+                if (DateTime.UtcNow - _lastScan < TimeSpan.FromSeconds(30))
+                    return null;
+                _byAumid = Scan();
+                _lastScan = DateTime.UtcNow;
+                return _byAumid.TryGetValue(aumid, out hit) ? hit : null;
+            }
+        }
+
+        private static Dictionary<string, string> Scan()
+        {
+            var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var root in new[]
+                     {
+                         Environment.GetFolderPath(Environment.SpecialFolder.Programs),
+                         Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms),
+                     })
+            {
+                if (!Directory.Exists(root))
+                    continue;
+                foreach (var lnk in Directory.EnumerateFiles(root, "*.lnk", SearchOption.AllDirectories))
+                {
+                    string? id = GetFileAumid(lnk);
+                    if (!string.IsNullOrEmpty(id) && id.Contains("._crx_", StringComparison.OrdinalIgnoreCase))
+                        map.TryAdd(id, lnk);
+                }
+            }
+            return map;
+        }
+    }
+
     /// <summary>True if <paramref name="path"/> is a package manifest used as an app identity.</summary>
     public static bool IsManifestIdentity(string path)
         => path.EndsWith(@"\" + ManifestName, StringComparison.OrdinalIgnoreCase)
@@ -129,13 +212,20 @@ internal static class HostedUwpApp
         }
     }
 
+    // Window enumeration runs every 750 ms; package lookups are slow, so cache them.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string?> FamilyDirs =
+        new(StringComparer.OrdinalIgnoreCase);
+
     private static string? PackageDirOfFamily(string? family)
     {
         if (string.IsNullOrEmpty(family))
             return null;
-        // Empty user SID = the current user; needs no elevation.
-        var pkg = new PackageManager().FindPackagesForUser(string.Empty, family).FirstOrDefault();
-        return pkg?.InstalledLocation?.Path;
+        return FamilyDirs.GetOrAdd(family, f =>
+        {
+            // Empty user SID = the current user; needs no elevation.
+            var pkg = new PackageManager().FindPackagesForUser(string.Empty, f).FirstOrDefault();
+            return pkg?.InstalledLocation?.Path;
+        });
     }
 
     private static string? FamilyFromAumid(string? aumid)
@@ -151,6 +241,27 @@ internal static class HostedUwpApp
         var iid = typeof(IPropertyStore).GUID;
         if (SHGetPropertyStoreForWindow(hwnd, ref iid, out IPropertyStore store) != 0 || store == null)
             return null;
+        return ReadAumid(store);
+    }
+
+    private static string? GetFileAumid(string path)
+    {
+        try
+        {
+            var iid = typeof(IPropertyStore).GUID;
+            if (SHGetPropertyStoreFromParsingName(path, IntPtr.Zero, GPS_DEFAULT, ref iid, out IPropertyStore store) != 0 || store == null)
+                return null;
+            return ReadAumid(store);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Reads System.AppUserModel.ID from a property store and releases it.</summary>
+    private static string? ReadAumid(IPropertyStore store)
+    {
         try
         {
             var key = PKEY_AppUserModel_ID;
@@ -212,6 +323,9 @@ internal static class HostedUwpApp
     [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
     [DllImport("dwmapi.dll")] private static extern int DwmGetWindowAttribute(IntPtr hwnd, int attr, out int value, int size);
     [DllImport("shell32.dll")] private static extern int SHGetPropertyStoreForWindow(IntPtr hwnd, ref Guid riid, out IPropertyStore store);
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    private static extern int SHGetPropertyStoreFromParsingName(string path, IntPtr bindCtx, int flags, ref Guid riid, out IPropertyStore store);
+    private const int GPS_DEFAULT = 0;
     [DllImport("ole32.dll")] private static extern int PropVariantClear(ref PROPVARIANT pv);
     [DllImport("kernel32.dll")] private static extern IntPtr OpenProcess(uint access, bool inherit, uint pid);
     [DllImport("kernel32.dll")] private static extern bool CloseHandle(IntPtr h);

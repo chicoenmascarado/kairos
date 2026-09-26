@@ -175,15 +175,17 @@ internal static class RunningApps
 
     /// <summary>
     /// The identity path of the app behind <paramref name="hwnd"/>: normally its
-    /// executable; for UWP frame windows, the hosted app's package manifest (see
-    /// <see cref="HostedUwpApp"/>). Returns "" for cloaked frames, which aren't open
+    /// executable; for UWP frame windows and Store web apps running in a browser
+    /// process, the app's package manifest (see <see cref="HostedUwpApp"/>). Returns "" for cloaked frames, which aren't open
     /// windows, and the frame host itself when the hosted app can't be identified.
     /// </summary>
     private static string? AppPathForWindow(IntPtr hwnd, uint pid)
     {
         string? path = GetProcessPath(pid);
-        if (path == null || !HostedUwpApp.IsFrameHost(path))
-            return path;
+        if (path == null)
+            return null;
+        if (!HostedUwpApp.IsFrameHost(path))
+            return HostedUwpApp.StoreAppForWindow(hwnd, path) ?? path;
         if (HostedUwpApp.IsCloaked(hwnd))
             return "";
         return HostedUwpApp.Resolve(hwnd, pid) ?? path;
