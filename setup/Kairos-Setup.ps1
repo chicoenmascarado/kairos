@@ -104,33 +104,19 @@ if (-not $SinInternet) {
 Log ("Internet: " + ($(if ($online) { 'sí' } else { 'no — se saltan idioma, runtimes y descargas' })))
 
 # ---------------------------------------------------------------------------
-#  3. Español (idioma de Windows, teclado, región y hora)
+#  3. Español: se descarga en segundo plano mientras sigue todo lo demás
+#     (Windows tarda en instalarlo; al final del setup se espera y se aplica)
 # ---------------------------------------------------------------------------
 Step 'Idioma español'
+$langJob = $null
 if ($SinIdioma) {
     Result 'Idioma' 'SALTADO'
 } elseif (-not $online) {
     Result 'Idioma' 'SALTADO' 'sin internet'
 } else {
-    try {
-        Log 'Descargando el paquete de idioma español (unos minutos)...'
-        # Solo idioma + interfaz: sin escritura a mano, voz ni OCR (tardan y no se usan).
-        Install-Language -Language es-ES -CopyToSettings -ExcludeFeatures -ErrorAction Stop | Out-Null
-        Set-SystemPreferredUILanguage -Language es-ES
-        Set-WinUILanguageOverride -Language es-ES
-        $list = New-WinUserLanguageList -Language es-ES          # trae el teclado español
-        Set-WinUserLanguageList -LanguageList $list -Force
-        Set-Culture -CultureInfo es-ES
-        Set-WinHomeLocation -GeoId 217                            # España
-        Set-WinSystemLocale -SystemLocale es-ES
-        tzutil /s 'Romance Standard Time'
-        Copy-UserInternationalSettingsToSystem -WelcomeScreen $true -NewUser $true
-        Log 'Español instalado (se ve completo tras reiniciar).' 'OK'
-        Result 'Idioma' 'OK' 'español de España, teclado ES, hora de Madrid'
-    } catch {
-        Log "Idioma: $($_.Exception.Message)" 'ERROR'
-        Result 'Idioma' 'ERROR' 'instálalo en Configuración > Hora e idioma'
-    }
+    # Solo idioma + interfaz: sin escritura a mano, voz ni OCR (tardan y no se usan).
+    $langJob = Start-Job -ScriptBlock { Install-Language -Language es-ES -CopyToSettings -ExcludeFeatures -ErrorAction Stop | Out-Null }
+    Log 'Instalando el español en segundo plano; el resto sigue mientras tanto.' 'OK'
 }
 
 # ---------------------------------------------------------------------------
@@ -169,20 +155,8 @@ if (-not $online) {
         $failed += 'winget no disponible'
     }
 
-    # .NET Framework 3.5 (lo usan instaladores y plugins viejos)
-    $netfx = Enable-WindowsOptionalFeature -Online -FeatureName NetFx3 -All -NoRestart -ErrorAction SilentlyContinue
-    if (-not $netfx) {
-        # Sin Windows Update: usar la ISO de Kairos que está en el mismo USB.
-        $iso = Get-ChildItem -Path ((Get-PSDrive -PSProvider FileSystem).Root) -Filter 'Kairos*.iso' -ErrorAction SilentlyContinue | Select-Object -First 1
-        if ($iso) {
-            $d = (Mount-DiskImage -ImagePath $iso.FullName -PassThru | Get-Volume).DriveLetter
-            $netfx = Enable-WindowsOptionalFeature -Online -FeatureName NetFx3 -All -NoRestart -Source "${d}:\sources\sxs" -LimitAccess -ErrorAction SilentlyContinue
-            Dismount-DiskImage -ImagePath $iso.FullName | Out-Null
-        }
-    }
-    if (-not $netfx) { $failed += '.NET 3.5' }
 
-    if ($failed.Count -eq 0) { Result 'Runtimes' 'OK' 'Visual C++ 2005-2022, DirectX 9, .NET 3.5, 7-Zip' }
+    if ($failed.Count -eq 0) { Result 'Runtimes' 'OK' 'Visual C++ 2005-2022, DirectX 9, 7-Zip' }
     else { Result 'Runtimes' 'AVISO' ("no se instalaron: " + ($failed -join ', ')) }
 }
 
@@ -411,6 +385,52 @@ try {
 } catch {
     Log "Kairos: $($_.Exception.Message)" 'ERROR'
     Result 'Kairos' 'ERROR' $_.Exception.Message
+}
+
+# ---------------------------------------------------------------------------
+#  Español: esperar a que termine y aplicarlo
+# ---------------------------------------------------------------------------
+if ($langJob) {
+    Step 'Terminando el español'
+    Log 'Esperando a que Windows termine de instalar el idioma (puede tardar)...'
+    Wait-Job $langJob | Out-Null
+    try {
+        Receive-Job $langJob -ErrorAction Stop | Out-Null
+        Set-SystemPreferredUILanguage -Language es-ES
+        Set-WinUILanguageOverride -Language es-ES
+        $list = New-WinUserLanguageList -Language es-ES          # trae el teclado español
+        Set-WinUserLanguageList -LanguageList $list -Force
+        Set-Culture -CultureInfo es-ES
+        Set-WinHomeLocation -GeoId 217                            # España
+        Set-WinSystemLocale -SystemLocale es-ES
+        tzutil /s 'Romance Standard Time'
+        Copy-UserInternationalSettingsToSystem -WelcomeScreen $true -NewUser $true
+        Log 'Español instalado (se ve completo tras reiniciar).' 'OK'
+        Result 'Idioma' 'OK' 'español de España, teclado ES, hora de Madrid'
+    } catch {
+        Log "Idioma: $($_.Exception.Message)" 'ERROR'
+        Result 'Idioma' 'ERROR' 'instálalo en Configuración > Hora e idioma'
+    }
+    Remove-Job $langJob -Force
+}
+
+# ---------------------------------------------------------------------------
+#  .NET Framework 3.5 (después del idioma: los dos usan el instalador de componentes)
+# ---------------------------------------------------------------------------
+& {
+    Step '.NET Framework 3.5'   # con internet va por Windows Update; sin él, sale de la ISO del USB
+    # .NET Framework 3.5 (lo usan instaladores y plugins viejos)
+    $netfx = Enable-WindowsOptionalFeature -Online -FeatureName NetFx3 -All -NoRestart -ErrorAction SilentlyContinue
+    if (-not $netfx) {
+        # Sin Windows Update: usar la ISO de Kairos que está en el mismo USB.
+        $iso = Get-ChildItem -Path ((Get-PSDrive -PSProvider FileSystem).Root) -Filter 'Kairos*.iso' -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($iso) {
+            $d = (Mount-DiskImage -ImagePath $iso.FullName -PassThru | Get-Volume).DriveLetter
+            $netfx = Enable-WindowsOptionalFeature -Online -FeatureName NetFx3 -All -NoRestart -Source "${d}:\sources\sxs" -LimitAccess -ErrorAction SilentlyContinue
+            Dismount-DiskImage -ImagePath $iso.FullName | Out-Null
+        }
+    }
+    if ($netfx) { $Report['.NET 3.5'] = 'OK' } else { $Report['.NET 3.5'] = 'AVISO — actívalo en Características de Windows' }
 }
 
 # ---------------------------------------------------------------------------
