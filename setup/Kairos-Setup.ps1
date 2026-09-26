@@ -358,7 +358,6 @@ try {
     $adv = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
     Set-Reg $adv 'HideFileExt' 0
     Set-Reg $adv 'TaskbarAl' 1
-    Set-Reg $adv 'TaskbarDa' 0
     Set-Reg $adv 'ShowTaskViewButton' 0
 
     # Sonido de arranque de Kairos.
@@ -373,6 +372,7 @@ try {
             $tmp = Join-Path $env:TEMP 'inter'
             Expand-Archive $interZip -DestinationPath $tmp -Force
             Get-ChildItem $tmp -Recurse -Filter 'Inter*.ttf' | Where-Object { $_.DirectoryName -notmatch 'variable' } | ForEach-Object {
+                if (Test-Path "$env:WINDIR\Fonts\$($_.Name)") { return }   # ya instalada (y en uso)
                 Copy-Item $_.FullName "$env:WINDIR\Fonts\" -Force
                 Set-Reg 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' "$($_.BaseName) (TrueType)" $_.Name 'String'
             }
