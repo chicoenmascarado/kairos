@@ -40,7 +40,7 @@ internal static class RunningApps
             if (pid == 0)
                 return true;
 
-            string? path = GetProcessPath(pid);
+            string? path = AppPathForWindow(hwnd, pid);
             if (string.IsNullOrEmpty(path))
                 return true;
 
@@ -130,7 +130,9 @@ internal static class RunningApps
                 return true;
 
             GetWindowThreadProcessId(hwnd, out uint pid);
-            string? path = pid == 0 ? null : GetProcessPath(pid);
+            string? path = pid == 0 ? null : AppPathForWindow(hwnd, pid);
+            if (path == "")
+                return true;   // cloaked UWP frame: not a real open window
 
             int len = GetWindowTextLength(hwnd);
             var sb = new StringBuilder(len + 1);
@@ -169,6 +171,22 @@ internal static class RunningApps
 
         // Must have a title.
         return GetWindowTextLength(hwnd) > 0;
+    }
+
+    /// <summary>
+    /// The identity path of the app behind <paramref name="hwnd"/>: normally its
+    /// executable; for UWP frame windows, the hosted app's package manifest (see
+    /// <see cref="HostedUwpApp"/>). Returns "" for cloaked frames, which aren't open
+    /// windows, and the frame host itself when the hosted app can't be identified.
+    /// </summary>
+    private static string? AppPathForWindow(IntPtr hwnd, uint pid)
+    {
+        string? path = GetProcessPath(pid);
+        if (path == null || !HostedUwpApp.IsFrameHost(path))
+            return path;
+        if (HostedUwpApp.IsCloaked(hwnd))
+            return "";
+        return HostedUwpApp.Resolve(hwnd, pid) ?? path;
     }
 
     private static string? GetProcessPath(uint pid)

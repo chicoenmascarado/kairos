@@ -33,6 +33,10 @@ internal static class IconExtractor
         if (!File.Exists(path) && !Directory.Exists(path))
             return null;
 
+        // Store / MSIX apps: the exe has no icon of its own, the logo lives in the package.
+        if (PackagedAppIcon.TryResolve(path) is { } logo && FromImageFile(logo) is { } packaged)
+            return packaged;
+
         var shfi = new SHFILEINFO();
         // SHGFI_SYSICONINDEX gives us an index into the system image list.
         IntPtr res = SHGetFileInfo(path, 0, ref shfi, (uint)Marshal.SizeOf(shfi),

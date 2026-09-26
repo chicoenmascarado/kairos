@@ -1173,6 +1173,9 @@ public partial class MainWindow : Window
     /// </summary>
     private static string GroupKeyForPath(string fullPath)
     {
+        // UWP apps are identified by their package manifest, not an exe.
+        if (HostedUwpApp.IsManifestIdentity(fullPath))
+            return HostedUwpApp.PackageKey(fullPath);
         try
         {
             var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(fullPath);
@@ -1189,6 +1192,8 @@ public partial class MainWindow : Window
     /// <summary>A friendly app name from its file metadata (falls back to the file name).</summary>
     private static string NiceName(string exePath)
     {
+        if (HostedUwpApp.IsManifestIdentity(exePath))
+            return KairosDock.Interop.PackagedAppIcon.DisplayName(exePath);
         try
         {
             var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(exePath);
