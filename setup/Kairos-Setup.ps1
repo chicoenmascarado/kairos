@@ -69,7 +69,12 @@ if ($build -lt 22000) { Log "Esto no es Windows 11 (build $build). Algunos pasos
 # ---------------------------------------------------------------------------
 Step 'Drivers'
 $drivers = Join-Path $Pkg 'drivers'
-if (Test-Path $drivers) {
+$cs = Get-CimInstance Win32_ComputerSystem
+$isVM = "$($cs.Manufacturer) $($cs.Model)" -match 'VirtualBox|innotek|VMware|QEMU|Virtual Machine|Parallels'
+if ($isVM) {
+    Log 'Máquina virtual: los drivers del portátil no aplican, se saltan.' 'INFO'
+    Result 'Drivers' 'SALTADO' 'máquina virtual'
+} elseif (Test-Path $drivers) {
     $out = pnputil /add-driver "$drivers\*.inf" /subdirs /install 2>&1
     $added = ($out | Select-String -Pattern 'Added driver packages|Paquetes de controladores agregados|Total driver packages' | Select-Object -Last 1)
     if ($added) { Log $added.Line.Trim() 'OK' } else { Log 'pnputil terminado' 'OK' }
