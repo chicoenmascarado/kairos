@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- Windows SDK projection enables WinRT APIs (Radios for Wi-Fi/Bluetooth
+         toggles, and SMTC for now-playing media info). -->
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>KairosDock</RootNamespace>
+    <AssemblyName>KairosDock</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Crisp icon rendering, no GDI dependency required. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Display-brightness read/write via WMI (laptop internal panels). -->
+    <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Ship the config next to the binary so first run "just works". -->
+    <None Update="kairos-dock.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

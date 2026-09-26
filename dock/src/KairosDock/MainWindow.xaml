@@ -1,0 +1,68 @@
+<Window x:Class="KairosDock.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="KairosDock"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        Topmost="True"
+        ResizeMode="NoResize"
+        ShowActivated="False"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display"
+        RenderOptions.BitmapScalingMode="HighQuality">
+
+    <!-- RootCanvas has NO background brush (Background is unset = null), so its
+         empty pixels are fully transparent AND not hit-tested. That gives us the
+         "click-through where empty" behaviour for free: clicks over blank areas
+         fall straight through to the desktop / windows beneath. Only the glass
+         panel and the icons are interactive. -->
+    <Canvas x:Name="RootCanvas" RenderOptions.EdgeMode="Unspecified">
+
+        <!-- The frosted glass slab. Width / Canvas.Left / Canvas.Top are set every
+             frame in code so the panel hugs the icons and grows as they magnify. -->
+        <Border x:Name="GlassPanel"
+                CornerRadius="24"
+                BorderThickness="1"
+                SnapsToDevicePixels="True">
+            <Border.RenderTransform>
+                <!-- Drives the entrance + auto-hide slide. -->
+                <TranslateTransform x:Name="PanelSlide" Y="0" />
+            </Border.RenderTransform>
+
+            <!-- Dark violet-tinted glass: a subtle vertical gradient gives the
+                 panel depth even before the DWM blur kicks in. -->
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#D914141F" Offset="0" />
+                    <GradientStop Color="#E60C0C16" Offset="1" />
+                </LinearGradientBrush>
+            </Border.Background>
+
+            <!-- 1px soft-light border with a faint violet sheen up top. -->
+            <Border.BorderBrush>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#40A78BFA" Offset="0" />
+                    <GradientStop Color="#14FFFFFF" Offset="0.5" />
+                    <GradientStop Color="#205B5BF5" Offset="1" />
+                </LinearGradientBrush>
+            </Border.BorderBrush>
+
+            <!-- Soft drop shadow under the dock. The RootCanvas leaves margin
+                 around the panel so this isn't clipped. -->
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="34"
+                                  ShadowDepth="8"
+                                  Direction="270"
+                                  Opacity="0.55"
+                                  Color="#FF05050A" />
+            </Border.Effect>
+        </Border>
+
+        <!-- The icon layer is populated and laid out entirely from code-behind so
+             the per-frame magnification math has direct control over each visual. -->
+        <Canvas x:Name="IconLayer" />
+    </Canvas>
+</Window>

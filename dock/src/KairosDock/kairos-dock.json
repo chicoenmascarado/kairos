@@ -1,0 +1,29 @@
+{
+  "autoHide": false,
+
+  "appearance": {
+    "iconSize": 44,
+    "iconSpacing": 12,
+    "maxScale": 1.6,
+    "influence": 90,
+    "cornerRadius": 22,
+    "bottomMargin": 0,
+    "blur": false,
+    "showClock": true
+  },
+
+  "items": [
+    {
+      "name": "Inicio",
+      "path": "kairos:start-menu"
+    },
+    {
+      "name": "Explorador de archivos",
+      "path": "%WINDIR%\\explorer.exe"
+    },
+    {
+      "name": "IA de Kairos",
+      "path": "kairos:ai"
+    }
+  ]
+}

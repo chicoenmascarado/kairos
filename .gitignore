@@ -45,3 +45,12 @@ config.local.json
 # Logs
 *.log
 /logs/
+
+# .NET builds
+bin/
+obj/
+.vs/
+*.user
+publish/
+*.iso
+.claude/
