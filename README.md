@@ -250,8 +250,8 @@ Kairos is built **in public**, in phases. Each phase produces something real and
 | Phase | Focus | Key deliverables | Status |
 |:---:|---|---|:---:|
 | **0** | **Identity & Community** | Name, logo, this repo, Discord, landing page | ✅ Completed |
-| **1** | **Optimized Base** | Win11 LTSC + debloat + custom installer + first ISO | 🟢 In progress |
-| **2** | **Shell MVP** | Dock, KaiSpot, theme, macOS shortcuts | ⚪ Planned |
+| **1** | **Optimized Base** | Debloated Win11 ISO + one-click post-install (drivers, runtimes, low-latency studio tuning) | 🟢 v0.1 built |
+| **2** | **Shell MVP** | Dock, KaiSpot, theme, macOS shortcuts | 🟢 v0.1 built |
 | **3** | **AI Agent v1** | KaiAssist, notes, screen reading, commands | ⚪ Planned |
 | **4** | **KaiRemote** | Telegram control, Wake-on-LAN, zero-config install | ⚪ Planned |
 | **5** | **Ecosystem** | Package manager, app store, docs, v1.0 | ⚪ Planned |
@@ -259,8 +259,8 @@ Kairos is built **in public**, in phases. Each phase produces something real and
 ### Milestones
 
 - **M0** — ✅ Public repo + identity that makes people want to join
-- **M1** — First downloadable ISO (real, installable) ← *we are here*
-- **M2** — First public demo of the shell on real hardware
+- **M1** — First installable ISO (real, installable) — ✅ v0.1 built, not yet public
+- **M2** — First public demo of the shell on real hardware ← *we are here* (first install on a laptop for a music producer)
 - **M3** — KaiAssist running with basic AI commands
 - **M4** — KaiRemote: Telegram control + remote wake working
 - **M5** — Public beta
@@ -269,6 +269,23 @@ Kairos is built **in public**, in phases. Each phase produces something real and
 <br />
 
 ---
+
+### What v0.1 includes
+
+| Piece | State |
+|---|---|
+| **Kairos ISO v0.1** | Windows 11 Pro 25H2 trimmed with NTLite: no Copilot, Xbox, Teams, Outlook, News, Widgets; telemetry and ads off |
+| **Kairos Setup** | One double-click post-install: drivers, Spanish locale, Visual C++ 2005-2022 + DirectX + .NET 3.5, "Kairos Studio" power plan and low-latency audio tuning, ASUS G-Helper, the Kairos layer. See [`setup/`](setup/) |
+| **KairosDock** | Replaces the taskbar: spring magnification, live previews, control center, its own system tray (Windows 10 and 11), reserves its strip so maximized apps sit above it, steps aside for full-screen apps, zero frames when idle |
+| **KaiSpot** | `Alt+Space` launcher: apps, recent files, maths, settings, web |
+| **KairosMenu · KairosFiles · KairosKeys** | Own start menu, file browser and `Win+Alt` shortcuts (no clashes with AltGr or DAW shortcuts) |
+| **Theme** | Dark + violet accent, wallpapers, lock screen, icons, startup sound, Inter font |
+
+Not in v0.1 yet: window manager and virtual-desktop gestures, macOS-style shortcut remapping, KaiNotes, clipboard manager, Focus Mode, the AI agent and KaiRemote.
+
+v0.x components are prototyped in **C# / WPF (.NET 8)**; the C++ / WinUI 3 shell below is the long-term target.
+
+<br />
 
 ## 🏗️ Architecture at a glance
 

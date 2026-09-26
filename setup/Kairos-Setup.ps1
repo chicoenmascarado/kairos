@@ -281,6 +281,15 @@ try {
     $apps = Join-Path $Pkg 'apps'
     $inst = Join-Path $env:LOCALAPPDATA 'Kairos'
     Get-Process KairosDock, KairosSpot, KairosMenu, KairosFiles, KairosKeys -ErrorAction SilentlyContinue | Stop-Process -Force
+
+    # Restos de versiones anteriores (VM de pruebas): el ayudante que ocultaba la
+    # barra y los accesos de arranque viejos abrirían una segunda copia de cada app.
+    Remove-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'KairosHideTaskbar' -ErrorAction SilentlyContinue
+    $startup = [Environment]::GetFolderPath('Startup')
+    foreach ($l in 'KaiSpot.lnk', 'KairosSpot.lnk', 'KairosMenu.lnk', 'KairosKeys.lnk', 'KairosDock.lnk') {
+        Remove-Item (Join-Path $startup $l) -Force -ErrorAction SilentlyContinue
+    }
+    Remove-Item 'C:\Kairos\Dock', "$env:LOCALAPPDATA\Kairos\KaiSpot" -Recurse -Force -ErrorAction SilentlyContinue
     foreach ($app in 'KairosDock', 'KairosSpot', 'KairosMenu', 'KairosFiles', 'KairosKeys') {
         New-Item -ItemType Directory -Force "$inst\$app" | Out-Null
         Copy-Item "$apps\$app\*" "$inst\$app\" -Recurse -Force
@@ -436,6 +445,8 @@ $txt += '  5. Abre G-Helper y deja el modo "Balanced" o "Turbo" enchufado.'
 $txt += ''
 $txt += "Registro completo: $LogFile"
 $txt | Set-Content (Join-Path $desktop 'Kairos - Informe de instalación.txt') -Encoding UTF8
+# Copia del registro junto al instalador (USB o carpeta compartida) para revisarlo fuera.
+Copy-Item $LogFile (Join-Path $Pkg "setup-$env:COMPUTERNAME.log") -Force -ErrorAction SilentlyContinue
 
 Write-Host ''
 Write-Host '  ================= RESUMEN =================' -ForegroundColor Magenta
