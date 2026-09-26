@@ -49,3 +49,4 @@ Copy-Item "$repo\setup\usb\ventoy\*" "$Usb\ventoy\" -Force
 Copy-Item "$repo\setup\LEEME.txt" "$Usb\LEEME - Kairos.txt" -Force
 
 Write-Host "USB listo en $Usb" -ForegroundColor Green
+exit 0   # robocopy deja 1 en $LASTEXITCODE cuando copia bien
