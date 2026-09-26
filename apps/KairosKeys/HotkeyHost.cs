@@ -36,7 +36,10 @@ namespace KairosKeys
 
         private void RegisterAll()
         {
-            uint CA = Interop.MOD_CONTROL | Interop.MOD_ALT | Interop.MOD_NOREPEAT;
+            // Win+Alt: apps can't use the Windows key, so these never clash with a
+            // DAW's shortcuts, and AltGr (= Ctrl+Alt on Spanish keyboards: €, @, #…)
+            // keeps working. Up/Down are taken by Windows 11's snap, hence PgUp/PgDn.
+            uint CA = Interop.MOD_WIN | Interop.MOD_ALT | Interop.MOD_NOREPEAT;
 
             var set = new List<Hotkey>
             {
@@ -45,8 +48,8 @@ namespace KairosKeys
                 new(CA, Interop.VK_D,    Actions.ShowDesktop,     "Mostrar escritorio"),
                 new(CA, Interop.VK_L,    Actions.LockScreen,      "Bloquear pantalla"),
                 new(CA, Interop.VK_V,    Actions.PastePlainText,  "Pegar texto plano"),
-                new(CA, Interop.VK_UP,   Actions.VolumeUp,        "Subir volumen"),
-                new(CA, Interop.VK_DOWN, Actions.VolumeDown,      "Bajar volumen"),
+                new(CA, Interop.VK_PRIOR, Actions.VolumeUp,        "Subir volumen"),
+                new(CA, Interop.VK_NEXT,  Actions.VolumeDown,      "Bajar volumen"),
                 new(CA, Interop.VK_M,    Actions.VolumeMute,      "Silenciar"),
             };
 

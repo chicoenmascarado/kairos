@@ -51,6 +51,7 @@ namespace KairosKeys
         internal const uint MOD_ALT = 0x0001;
         internal const uint MOD_CONTROL = 0x0002;
         internal const uint MOD_SHIFT = 0x0004;
+        internal const uint MOD_WIN = 0x0008;
         internal const uint MOD_NOREPEAT = 0x4000;
         internal const uint VK_SPACE = 0x20;
 
@@ -61,6 +62,8 @@ namespace KairosKeys
         internal const uint VK_L = 0x4C;
         internal const uint VK_V = 0x56;
         internal const uint VK_M = 0x4D;
+        internal const uint VK_PRIOR = 0x21; // Page Up
+        internal const uint VK_NEXT = 0x22;  // Page Down
         internal const uint VK_UP = 0x26;
         internal const uint VK_DOWN = 0x28;
 

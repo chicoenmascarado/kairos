@@ -1,0 +1,52 @@
+﻿KAIROS — instalación en el ASUS ROG Strix G15 (G513IC)
+======================================================
+
+Este USB (Ventoy) lleva dos cosas:
+  - Kairos-v0.1.iso     el sistema (Windows 11 Pro 25H2 adelgazado)
+  - KairosSetup\        el post-install que lo deja todo listo
+
+1. INSTALAR EL SISTEMA
+   - Portátil apagado y enchufado. USB puesto.
+   - Enciende y pulsa ESC repetidamente -> elige el USB (UEFI).
+   - En Ventoy elige Kairos-v0.1.iso -> "Boot in normal mode".
+   - Borra todas las particiones del disco Intel de 512 GB y elige el espacio vacío.
+     (Esto borra TODO lo que hay en el portátil.)
+   - Termina el asistente y crea tu usuario (cuenta local, sin Microsoft).
+
+2. DEJARLO LISTO
+   - Abre el USB > KairosSetup > doble clic en INSTALAR-KAIROS.cmd
+   - Acepta el aviso de permisos. Conéctate a internet cuando te lo pida.
+   - Tarda 15-30 minutos. Al final pide una clave de Windows (opcional) y reiniciar.
+
+   Qué hace, en orden:
+     Drivers del portátil · Windows en español · Visual C++ 2005-2022, DirectX y
+     .NET 3.5 (los piden FL Studio y muchos plugins) · plan de energía "Kairos
+     Estudio" y ajustes de baja latencia · G-Helper para ASUS · la capa Kairos
+     (dock, KaiSpot, menú, explorador, tema) · informe en el escritorio.
+
+3. PARA PRODUCIR
+   - Instala FL Studio (image-line.com) y los drivers ASIO de tu interfaz de audio.
+   - FL Studio > Options > Audio settings > tu interfaz ASIO (o "FL Studio ASIO").
+   - Buffer: 128-256 para grabar, 512 para mezclar.
+   - Si notas cortes: comprueba con LatencyMon (resplendence.com) y graba enchufado.
+   - Las apps a pantalla completa apartan el dock; con FL maximizado queda justo encima.
+
+ATAJOS DE KAIROS
+   Alt+Espacio          KaiSpot: buscar apps, archivos, calcular
+   Ctrl+Mayús+Espacio   Menú de Kairos
+   Win+Alt+E            Explorador de Kairos
+   Win+Alt+S            Captura de pantalla
+   Win+Alt+V            Pegar como texto plano
+   Win+Alt+RePág/AvPág/M  Volumen + / - / silencio
+   Clic en la hora del dock: centro de control y bandeja del sistema.
+
+NOTAS
+   - Windows Defender y Windows Update siguen activos: el equipo es seguro para
+     instalar plugins. Windows no reinicia solo mientras tienes la sesión abierta.
+   - Si un plugin antiguo no carga su protección anticopia (iLok, etc.), se puede
+     desactivar la Integridad de memoria (sube un poco el rendimiento, protege menos).
+     Esta ISO no trae el panel de Seguridad de Windows, así que es con un comando en
+     una terminal de administrador y reiniciando:
+       reg add HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity /v Enabled /t REG_DWORD /d 0 /f
+   - El antivirus (Defender) funciona aunque no tenga panel propio.
+   - Registro de la instalación: C:\Kairos\setup.log

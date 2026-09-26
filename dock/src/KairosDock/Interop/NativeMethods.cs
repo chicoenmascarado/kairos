@@ -34,4 +34,17 @@ internal static class NativeMethods
         keybd_event(VK_LWIN, 0, 0, UIntPtr.Zero);
         keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
     }
+
+    /// <summary>True when the desktop (wallpaper) has focus: the shell reports it as a
+    /// "full-screen app", which must not make the dock step aside.</summary>
+    public static bool IsDesktopForeground()
+    {
+        var cls = new System.Text.StringBuilder(64);
+        GetClassName(GetForegroundWindow(), cls, cls.Capacity);
+        return cls.ToString() is "Progman" or "WorkerW" or "Shell_TrayWnd";
+    }
+
+    [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetClassName(IntPtr hWnd, System.Text.StringBuilder name, int max);
 }

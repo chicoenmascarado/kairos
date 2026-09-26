@@ -71,11 +71,11 @@ else { Write-Warn "No se detecta el proceso." }
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host " KairosKeys instalado. Atajos activos:" -ForegroundColor Cyan
-Write-Host "  Ctrl+Alt+E     Abrir explorador Kairos" -ForegroundColor Cyan
-Write-Host "  Ctrl+Alt+S     Captura de region" -ForegroundColor Cyan
-Write-Host "  Ctrl+Alt+D     Mostrar escritorio" -ForegroundColor Cyan
-Write-Host "  Ctrl+Alt+L     Bloquear pantalla" -ForegroundColor Cyan
-Write-Host "  Ctrl+Alt+V     Pegar como texto plano" -ForegroundColor Cyan
-Write-Host "  Ctrl+Alt+Up/Down/M  Volumen +/-/silenciar" -ForegroundColor Cyan
+Write-Host "  Win+Alt+E      Abrir explorador Kairos" -ForegroundColor Cyan
+Write-Host "  Win+Alt+S      Captura de region" -ForegroundColor Cyan
+Write-Host "  Win+Alt+D      Mostrar escritorio" -ForegroundColor Cyan
+Write-Host "  Win+Alt+L      Bloquear pantalla" -ForegroundColor Cyan
+Write-Host "  Win+Alt+V      Pegar como texto plano" -ForegroundColor Cyan
+Write-Host "  Win+Alt+RePag/AvPag/M  Volumen +/-/silenciar" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""

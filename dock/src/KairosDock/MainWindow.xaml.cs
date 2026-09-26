@@ -129,6 +129,7 @@ public partial class MainWindow : Window
         int ex = NativeMethods.GetWindowLong(hwnd, NativeMethods.GWL_EXSTYLE);
         ex |= NativeMethods.WS_EX_NOACTIVATE | NativeMethods.WS_EX_TOOLWINDOW;
         NativeMethods.SetWindowLong(hwnd, NativeMethods.GWL_EXSTYLE, ex);
+        System.Windows.Interop.HwndSource.FromHwnd(hwnd)?.AddHook(DockWndProc);
 
         // Optional real acrylic blur (opt-in via config). It blurs the whole window
         // rectangle, so it's off by default; the layered glass already looks premium.
@@ -148,12 +149,24 @@ public partial class MainWindow : Window
 
         // Shell integration: optional auto-start + hide the Windows taskbar so the
         // Kairos dock is THE shell. The taskbar is restored when we exit.
+        // Kairos' own notification area (works on Windows 10 and 11). Started before
+        // hiding the taskbar so no tray icon is ever unreachable.
+        TrayHost.Start();
+        Closed += (_, _) => TrayHost.Stop();
+
         ShellIntegration.SetAutoStart(_config.AutoStart);
         if (_config.HideWindowsTaskbar)
         {
             ShellIntegration.HideTaskbar();
             Closed += (_, _) => ShellIntegration.RestoreTaskbar();
             AppDomain.CurrentDomain.ProcessExit += (_, _) => ShellIntegration.RestoreTaskbar();
+
+            // Explorer restarted: its fresh taskbar comes back visible and reserving space.
+            TrayHost.ExplorerTaskbarRecreated += () =>
+            {
+                ShellIntegration.HideTaskbar();
+                ShellIntegration.ApplyReservation();
+            };
         }
 
         BuildIcons();
@@ -164,8 +177,13 @@ public partial class MainWindow : Window
         PositionWindow();
         LayoutFrame(initial: true);
 
-        // The single source of truth for all motion.
-        CompositionTarget.Rendering += OnRendering;
+        // Dock always visible as the shell → reserve its strip so maximized apps
+        // (FL Studio, an editor…) end right above it instead of under it.
+        if (_config.HideWindowsTaskbar && !_config.AutoHide)
+            ReserveDockStrip();
+
+        // The single source of truth for all motion (sleeps while nothing moves).
+        WakeAnimation();
 
         StartRunningWatcher();
         PlayEntrance();
@@ -482,6 +500,7 @@ public partial class MainWindow : Window
     /// <summary>Rest centres anchor the magnification falloff; recomputed on reorder.</summary>
     private void RecomputeRestCenters()
     {
+        WakeAnimation(); // icons get new resting slots: let them glide there
         int n = _icons.Count;
         double iconsRest = (n * _iconSize) + (Math.Max(0, n - 1) * _spacing);
         double restPanelW = iconsRest + ClockTotal + (2 * PanelPadX);
@@ -506,6 +525,35 @@ public partial class MainWindow : Window
     // =======================================================================
     //  The animation loop — the core of the "feel"
     // =======================================================================
+
+    // The render loop only runs while something is moving. Once every spring has
+    // settled it unhooks itself, so an idle dock costs no frames at all (it matters
+    // on an audio machine). Anything that starts motion calls WakeAnimation().
+    private bool _animating;
+    private int _idleFrames;
+
+    private void WakeAnimation()
+    {
+        _idleFrames = 0;
+        if (_animating)
+            return;
+        _animating = true;
+        _lastFrameTime = _clock.Elapsed.TotalSeconds;
+        CompositionTarget.Rendering += OnRendering;
+    }
+
+    private void SleepIfSettled(bool moving)
+    {
+        if (moving)
+        {
+            _idleFrames = 0;
+            return;
+        }
+        if (++_idleFrames < 10) // a few quiet frames before parking
+            return;
+        CompositionTarget.Rendering -= OnRendering;
+        _animating = false;
+    }
 
     private void OnRendering(object? sender, EventArgs e)
     {
@@ -554,6 +602,48 @@ public partial class MainWindow : Window
         }
 
         LayoutFrame(initial: false);
+
+        bool moving = _isDragging || !_slideSpring.AtRest;
+        foreach (var ic in _icons)
+        {
+            if (!ic.Started || ic.Removing || !ic.ScaleSpring.AtRest || !ic.PopSpring.AtRest ||
+                !ic.BounceSpring.AtRest || !ic.PosSpring.AtRest)
+            {
+                moving = true;
+                break;
+            }
+        }
+        SleepIfSettled(moving);
+    }
+
+    private void ReserveDockStrip()
+    {
+        var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+        double dpi = VisualTreeHelper.GetDpi(this).DpiScaleY;
+        double dip = (_panelBottomY - _panelTopY) + _config.Appearance.BottomMargin;
+        ShellIntegration.ReserveBottomStrip(hwnd, (int)Math.Ceiling(dip * dpi));
+        Closed += (_, _) => ShellIntegration.ReleaseBottomStrip();
+    }
+
+    private IntPtr DockWndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if ((uint)msg != ShellIntegration.AppBarCallbackMessage)
+            return IntPtr.Zero;
+
+        switch ((int)wParam)
+        {
+            case ShellIntegration.ABN_POSCHANGED:
+                ShellIntegration.ApplyReservation();
+                break;
+            case ShellIntegration.ABN_FULLSCREENAPP:
+                // A game or video went full screen: step aside until it leaves. The
+                // desktop itself also reports as "full screen" — ignore that one.
+                bool fullscreen = lParam != IntPtr.Zero && !NativeMethods.IsDesktopForeground();
+                Visibility = fullscreen ? Visibility.Hidden : Visibility.Visible;
+                break;
+        }
+        handled = true;
+        return IntPtr.Zero;
     }
 
     /// <summary>
@@ -719,6 +809,7 @@ public partial class MainWindow : Window
         var p = e.GetPosition(RootCanvas);
         _cursorX = p.X;
         _cursorActive = true;
+        WakeAnimation();
 
         if (_pendingDrag == null)
             return;
@@ -741,6 +832,7 @@ public partial class MainWindow : Window
     {
         _isDragging = true;
         _draggingIcon = _pendingDrag;
+        WakeAnimation();
         if (_draggingIcon != null)
         {
             Panel.SetZIndex(_draggingIcon.Host, 100); // float above the others
@@ -806,13 +898,17 @@ public partial class MainWindow : Window
     private void OnMouseLeave(object sender, MouseEventArgs e)
     {
         if (!_isDragging)
+        {
             _cursorActive = false; // relax icons back to rest
+            WakeAnimation();
+        }
     }
 
     private void LaunchWithBounce(DockIcon icon)
     {
         // Upward velocity impulse on an under-damped spring → a couple of soft hops.
         icon.BounceSpring.Nudge(DockTuning.BounceImpulse);
+        WakeAnimation();
 
         switch (icon.Item.Path)
         {
@@ -879,6 +975,7 @@ public partial class MainWindow : Window
     {
         icon.Item.Pinned = false; // so the reconciler doesn't treat it as pinned
         icon.Removing = true;
+        WakeAnimation();
         FadeTo(icon.Dot, 0, 150);
 
         _config.Items.Remove(icon.Item);
@@ -932,10 +1029,16 @@ public partial class MainWindow : Window
             double dpi = VisualTreeHelper.GetDpi(this).DpiScaleY;
             double bottomPx = wa.Bottom * dpi;
             bool nearBottom = p.Y >= bottomPx - 3;
-            _slideTarget = nearBottom ? 0 : hideDistance;
+            double target = nearBottom ? 0 : hideDistance;
+            if (target != _slideTarget)
+            {
+                _slideTarget = target;
+                WakeAnimation();
+            }
         };
         _autoHideTimer.Start();
         _slideTarget = hideDistance; // start hidden
+        WakeAnimation();
     }
 
     // =======================================================================
@@ -1018,6 +1121,7 @@ public partial class MainWindow : Window
             if (!runningByName.ContainsKey(fn))
             {
                 icon.Removing = true;
+                WakeAnimation();
                 FadeTo(icon.Dot, 0, 150);
                 // Geometry shrinks once FinalizeRemoval runs in the loop.
             }
@@ -1047,6 +1151,7 @@ public partial class MainWindow : Window
         icon.PopSpring.Reset(0);
         FadeTo(icon.Dot, 1.0, 240);
         _icons.Add(icon);
+        WakeAnimation();
     }
 
     /// <summary>The grouping key a dock item maps to, or "" for special / URL items.</summary>

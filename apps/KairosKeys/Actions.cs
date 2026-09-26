@@ -73,6 +73,13 @@ namespace KairosKeys
                 string text = Clipboard.GetText();
                 Clipboard.SetText(text); // re-set como texto plano (sin formato enriquecido)
 
+                // Soltar Win y Alt (siguen pulsados por el atajo); si no, la app
+                // recibiria Win+Alt+Ctrl+V en vez de Ctrl+V.
+                const byte VK_LWIN = 0x5B, VK_RWIN = 0x5C, VK_MENU = 0x12;
+                Interop.keybd_event(VK_LWIN, 0, Interop.KEYEVENTF_KEYUP, UIntPtr.Zero);
+                Interop.keybd_event(VK_RWIN, 0, Interop.KEYEVENTF_KEYUP, UIntPtr.Zero);
+                Interop.keybd_event(VK_MENU, 0, Interop.KEYEVENTF_KEYUP, UIntPtr.Zero);
+
                 // Simular Ctrl+V
                 const byte VK_CONTROL = 0x11;
                 const byte VK_V = 0x56;

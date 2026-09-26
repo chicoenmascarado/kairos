@@ -19,8 +19,11 @@ namespace KairosDock.Services;
 /// </summary>
 internal static class SystemTray
 {
+    /// <param name="Version">NOTIFYICON protocol the app registered (0 classic, 3/4
+    /// modern), or -1 when unknown (read from explorer's toolbar).</param>
     public readonly record struct TrayItem(
-        BitmapSource? Icon, string Tooltip, IntPtr OwnerWindow, uint Id, uint CallbackMessage);
+        BitmapSource? Icon, string Tooltip, IntPtr OwnerWindow, uint Id, uint CallbackMessage,
+        int Version = -1);
 
     /// <summary>
     /// Replays a tray click to the owning app, exactly like the real notification
@@ -34,6 +37,8 @@ internal static class SystemTray
             return;
 
         // The owner must be foreground for its popup menu to appear and dismiss.
+        GetWindowThreadProcessId(item.OwnerWindow, out uint ownerPid);
+        AllowSetForegroundWindow(ownerPid);
         SetForegroundWindow(item.OwnerWindow);
         GetCursorPos(out POINT pt);
 
@@ -42,7 +47,27 @@ internal static class SystemTray
         uint id = item.Id;
         uint down = rightClick ? WM_RBUTTONDOWN : WM_LBUTTONDOWN;
         uint up = rightClick ? WM_RBUTTONUP : WM_LBUTTONUP;
+        IntPtr coords = (IntPtr)MakeLong(pt.X, pt.Y);
 
+        // Known protocol (icons from TrayHost): send exactly what explorer would.
+        if (item.Version == 0)
+        {
+            PostMessage(hwnd, cb, (IntPtr)id, (IntPtr)down);
+            PostMessage(hwnd, cb, (IntPtr)id, (IntPtr)up);
+            return;
+        }
+        if (item.Version > 0)
+        {
+            bool v4 = item.Version >= 4;
+            IntPtr w = v4 ? coords : (IntPtr)id;
+            IntPtr L(uint m) => v4 ? (IntPtr)MakeLong((int)m, (int)id) : (IntPtr)m;
+            PostMessage(hwnd, cb, w, L(down));
+            PostMessage(hwnd, cb, w, L(up));
+            PostMessage(hwnd, cb, w, L(rightClick ? (uint)WM_CONTEXTMENU : NIN_SELECT));
+            return;
+        }
+
+        // Unknown protocol: send both, the app ignores the one it doesn't speak.
         // 1) Classic protocol (Shell_NotifyIcon < v4): wParam = icon id, lParam = msg.
         PostMessage(hwnd, cb, (IntPtr)id, (IntPtr)down);
         PostMessage(hwnd, cb, (IntPtr)id, (IntPtr)up);
@@ -51,7 +76,6 @@ internal static class SystemTray
         //    notification event in the low word and the icon id in the high word.
         //    Apps respond to whichever protocol they registered with; the other is
         //    harmlessly ignored, so left- and right-click work across virtually all.
-        IntPtr coords = (IntPtr)MakeLong(pt.X, pt.Y);
         PostMessage(hwnd, cb, coords, (IntPtr)MakeLong((int)down, (int)id));
         PostMessage(hwnd, cb, coords, (IntPtr)MakeLong((int)up, (int)id));
         if (rightClick)
@@ -62,6 +86,10 @@ internal static class SystemTray
 
     public static List<TrayItem> Enumerate()
     {
+        // Kairos' own tray (Win10 + Win11) when it's running; explorer's toolbar otherwise.
+        if (TrayHost.IsActive)
+            return TrayHost.Snapshot();
+
         var items = new List<TrayItem>();
         foreach (IntPtr toolbar in FindTrayToolbars())
             ReadToolbar(toolbar, items);
@@ -71,7 +99,7 @@ internal static class SystemTray
     private static IEnumerable<IntPtr> FindTrayToolbars()
     {
         // Visible icons: Shell_TrayWnd → TrayNotifyWnd → SysPager → ToolbarWindow32
-        IntPtr tray = FindWindow("Shell_TrayWnd", null);
+        IntPtr tray = TrayHost.FindExplorerTray();
         IntPtr notify = FindWindowEx(tray, IntPtr.Zero, "TrayNotifyWnd", null);
         IntPtr pager = FindWindowEx(notify, IntPtr.Zero, "SysPager", null);
         IntPtr main = FindWindowEx(pager, IntPtr.Zero, "ToolbarWindow32", null);
@@ -232,6 +260,7 @@ internal static class SystemTray
     private const uint WM_LBUTTONDOWN = 0x0201, WM_LBUTTONUP = 0x0202;
     private const uint WM_RBUTTONDOWN = 0x0204, WM_RBUTTONUP = 0x0205;
     private const int WM_CONTEXTMENU = 0x007B;
+    private const uint NIN_SELECT = 0x0400; // WM_USER: "icon selected" for v3+ apps
 
     [StructLayout(LayoutKind.Sequential)] private struct POINT { public int X, Y; }
 
@@ -260,6 +289,7 @@ internal static class SystemTray
     [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
     [DllImport("user32.dll")] private static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
     [DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr hWnd);
+    [DllImport("user32.dll")] private static extern bool AllowSetForegroundWindow(uint pid);
     [DllImport("user32.dll")] private static extern bool GetCursorPos(out POINT pt);
     [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint pid);
     [DllImport("user32.dll")] private static extern bool GetIconInfo(IntPtr hIcon, out ICONINFO info);
