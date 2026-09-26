@@ -1,0 +1,9 @@
+{
+  "control": [
+    { "VTOY_DEFAULT_SEARCH_ROOT": "/" }
+  ],
+  "auto_install": [
+    { "image": "/Kairos-v0.2.iso", "template": "/ventoy/kairos-unattend.xml" },
+    { "image": "/Kairos-v0.1.iso", "template": "/ventoy/kairos-unattend.xml" }
+  ]
+}

@@ -74,8 +74,11 @@ if (Test-Path $drivers) {
     $added = ($out | Select-String -Pattern 'Added driver packages|Paquetes de controladores agregados|Total driver packages' | Select-Object -Last 1)
     if ($added) { Log $added.Line.Trim() 'OK' } else { Log 'pnputil terminado' 'OK' }
     Result 'Drivers' 'OK' 'instalados desde la copia del portátil; Windows Update traerá versiones más nuevas'
+} elseif (Get-PSDrive -PSProvider FileSystem | Where-Object { Test-Path (Join-Path $_.Root '$WinPEDriver$') }) {
+    Log 'Los drivers del portátil ya se instalaron durante la instalación de Windows ($WinPEDriver$).' 'OK'
+    Result 'Drivers' 'OK' 'integrados durante la instalación de Windows'
 } else {
-    Log 'No hay carpeta drivers\ en el USB: se usan los de Windows y Windows Update.' 'AVISO'
+    Log 'No hay copia de drivers: se usan los de Windows y Windows Update.' 'AVISO'
     Result 'Drivers' 'AVISO' 'sin copia de drivers en el USB'
 }
 
@@ -427,6 +430,12 @@ if ($lic -and $lic.LicenseStatus -eq 1) {
         Result 'Licencia' 'PENDIENTE' 'sin activar: Configuración > Sistema > Activación'
     }
 }
+
+# ---------------------------------------------------------------------------
+#  Antivirus: solo se informa (la v0.2 de la ISO puede venir sin Defender)
+# ---------------------------------------------------------------------------
+if (Get-Service WinDefend -ErrorAction SilentlyContinue) { Result 'Antivirus' 'Defender activo' }
+else { Result 'Antivirus' 'SIN ANTIVIRUS' 'ISO sin Defender: instala solo software de fuentes de confianza' }
 
 # ---------------------------------------------------------------------------
 #  Informe

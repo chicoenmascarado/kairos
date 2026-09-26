@@ -46,7 +46,7 @@ Copy-Item "$repo\assets\*" "$Out\assets\" -Recurse -Force
 
 # 3. Drivers del equipo actual (solo hardware del portátil, nada de apps de terceros)
 if ($ExportDrivers) {
-    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole('Administrators')
+    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)   # vale en cualquier idioma
     if (-not $isAdmin) { throw 'Exportar drivers necesita PowerShell como administrador.' }
     $skip = 'Oracle|VirtualBox|DEV47|DroidCam|Apple|Focusrite|VMware|Parallels|OpenVPN|WireGuard|Mullvad|TAP-Windows|Wintun|Cheat|Logitech Gaming'
     $dest = "$Out\drivers"

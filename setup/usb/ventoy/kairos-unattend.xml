@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Kairos v0.2 - respuestas de instalacion (Ventoy auto_install).
+  - Instala "Windows 11 Pro" (por nombre: vale con 1 o con 11 ediciones en la ISO).
+  - Region, teclado y hora de Espana desde el primer minuto (interfaz en ingles
+    hasta que Kairos Setup instala el espanol).
+  - Cuenta local, sin pantallas de Microsoft.
+  - NO borra discos: el particionado se elige a mano, para no llevarse nada por error.
+  - Al primer inicio de sesion copia KairosSetup del USB a C:\Kairos\Setup y lo lanza.
+-->
+<unattend xmlns="urn:schemas-microsoft-com:unattend" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <settings pass="windowsPE">
+    <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <SetupUILanguage>
+        <UILanguage>en-GB</UILanguage>
+      </SetupUILanguage>
+      <InputLocale>040a:0000040a</InputLocale>
+      <SystemLocale>es-ES</SystemLocale>
+      <UILanguage>en-GB</UILanguage>
+      <UserLocale>es-ES</UserLocale>
+    </component>
+    <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <Diagnostics>
+        <OptIn>false</OptIn>
+      </Diagnostics>
+      <ImageInstall>
+        <OSImage>
+          <WillShowUI>OnError</WillShowUI>
+          <InstallFrom>
+            <MetaData wcm:action="add">
+              <Key>/IMAGE/NAME</Key>
+              <Value>Windows 11 Pro</Value>
+            </MetaData>
+          </InstallFrom>
+        </OSImage>
+      </ImageInstall>
+      <UserData>
+        <AcceptEula>true</AcceptEula>
+        <ProductKey>
+          <Key></Key>
+          <WillShowUI>Never</WillShowUI>
+        </ProductKey>
+      </UserData>
+    </component>
+  </settings>
+
+  <settings pass="specialize">
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <TimeZone>Romance Standard Time</TimeZone>
+      <OEMInformation>
+        <Manufacturer>Kairos</Manufacturer>
+        <Model>Kairos v0.2</Model>
+        <SupportURL>https://kairoswebsite.vercel.app</SupportURL>
+      </OEMInformation>
+    </component>
+  </settings>
+
+  <settings pass="oobeSystem">
+    <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <InputLocale>040a:0000040a</InputLocale>
+      <SystemLocale>es-ES</SystemLocale>
+      <UILanguage>en-GB</UILanguage>
+      <UserLocale>es-ES</UserLocale>
+    </component>
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <TimeZone>Romance Standard Time</TimeZone>
+      <OOBE>
+        <HideEULAPage>true</HideEULAPage>
+        <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
+        <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+        <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+        <ProtectYourPC>3</ProtectYourPC>
+      </OOBE>
+      <FirstLogonCommands>
+        <SynchronousCommand wcm:action="add">
+          <Order>1</Order>
+          <Description>Copiar KairosSetup del USB al disco</Description>
+          <CommandLine>cmd /c for %d in (D E F G H I J K L M N O P Q R S T U V W Y Z) do if exist %d:\KairosSetup\INSTALAR-KAIROS.cmd robocopy %d:\KairosSetup C:\Kairos\Setup /E /NFL /NDL /NJH /NJS</CommandLine>
+        </SynchronousCommand>
+        <SynchronousCommand wcm:action="add">
+          <Order>2</Order>
+          <Description>Lanzar Kairos Setup</Description>
+          <CommandLine>cmd /c if exist C:\Kairos\Setup\INSTALAR-KAIROS.cmd start "Kairos Setup" C:\Kairos\Setup\INSTALAR-KAIROS.cmd</CommandLine>
+        </SynchronousCommand>
+      </FirstLogonCommands>
+    </component>
+  </settings>
+</unattend>
