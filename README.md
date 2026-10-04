@@ -1,6 +1,5 @@
 <div align="center">
 
-<!-- Replace this with your logo once you upload it to the repo -->
 <img src="docs/assets/kairos-logo.png" alt="Kairos OS" width="140" />
 
 # KAIROS
@@ -22,6 +21,10 @@ Kairos takes the best of macOS, Linux, and Windows — and makes it native, inte
 <br />
 
 [**Website**](https://kairoswebsite.vercel.app) · [**Vision**](#-the-vision) · [**Features**](#-what-kairos-does) · [**AI Agent**](#-the-kairos-ai-agent) · [**KaiRemote**](#-kairemote--your-pc-from-anywhere) · [**Roadmap**](#-roadmap) · [**Contribute**](#-contributing)
+
+<br />
+
+⭐ **If this is the OS you want to exist, star the repo.** It is how an early open-source project gets found.
 
 </div>
 
