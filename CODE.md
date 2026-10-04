@@ -12,7 +12,7 @@ Pre-alpha. Every component is a native Windows app in C# / WPF / .NET 8.
 | `scripts/` | PowerShell setup for a Kairos machine: post-install, theme, debloat, cleanup, audit, lock screen, Inter font, "Layer 1" visuals and per-app installers. **Run as admin inside a test VM, not on your main PC.** |
 | `assets/` | Logo, wallpapers, startup sound and Layer 1 icons. |
 
-The Kairos ISO and the landing page (`Wolffbtw/kairosweb`) live elsewhere.
+The Kairos ISO and the landing page live in separate repositories.
 
 ## Build
 
